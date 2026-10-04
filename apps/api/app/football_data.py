@@ -9,7 +9,8 @@ router=APIRouter(prefix="/public-data", tags=["public-data"])
 BASE="https://api.football-data.org/v4"
 CACHE={}
 TTL=int(os.getenv("FOOTBALL_DATA_CACHE_SECONDS","900"))
-COMPETITIONS={"PL":"Premier League","PD":"La Liga","BL1":"Bundesliga","SA":"Serie A","FL1":"Ligue 1","CL":"UEFA Champions League","WC":"FIFA World Cup"}
+COMPETITIONS={"PL":"Premier League","PD":"La Liga","BL1":"Bundesliga","SA":"Serie A","FL1":"Ligue 1","CL":"UEFA Champions League","WC":"FIFA World Cup","EC":"UEFA European Championship"}
+INTERNATIONAL_CANDIDATES={"WC":"FIFA World Cup","EC":"UEFA European Championship","UNL":"UEFA Nations League","ACN":"Africa Cup of Nations","CA":"Copa América","QCAF":"CAF World Cup Qualification","QAFC":"AFC World Cup Qualification","QCONCACAF":"CONCACAF World Cup Qualification","QSA":"CONMEBOL World Cup Qualification","QEU":"UEFA World Cup Qualification"}
 
 def _key():
     return os.getenv("FOOTBALL_DATA_API_KEY","").strip()
@@ -45,6 +46,18 @@ def _match(m):
 
 @router.get("/health")
 def provider_health(): return {"configured":bool(_key()),"provider":"football-data.org","cache_seconds":TTL,"competitions":COMPETITIONS}
+
+
+@router.get("/international/catalogue")
+def international_catalogue():
+    """Return only international competitions the configured account can actually see."""
+    data,cached=_get("/competitions",ttl=21600); rows=[]
+    for x in data.get("competitions",[]):
+        name=str(x.get("name") or ""); area=(x.get("area") or {}).get("name")
+        hay=(name+" "+str(area or "")).lower()
+        if not any(k in hay for k in ("world cup","european championship","nations league","africa cup","copa am","qualification")): continue
+        rows.append({"id":x.get("id"),"code":x.get("code"),"name":name,"area":area,"emblem":x.get("emblem"),"plan":x.get("plan"),"type":x.get("type"),"current_season":x.get("currentSeason")})
+    return {"provider":"football-data.org","cached":cached,"competitions":rows}
 
 @router.get("/competitions")
 def competitions():
