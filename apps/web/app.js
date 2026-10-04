@@ -76,7 +76,7 @@ async function initDatasets(){
     // rebuilt Match Lab plus the active section on every league change, which made
     // the whole shell feel as if it was reloading.
     if(activeView==='matches')loadMatches().catch(err=>console.warn('Matches unavailable for dataset',err));
-    if(activeView==='live-transfers')loadLiveTransfers();if(activeView==='scout')loadScout();if(activeView==='teams')loadTeams();if(activeView==='transfers')loadTransfer();if(activeView==='league')loadLeague();if(activeView==='rankings')loadRankings();if(activeView==='worldcup')loadWorldCup();
+    if(activeView==='home'){}if(activeView==='live-transfers')loadLiveTransfers();if(activeView==='scout')loadScout();if(activeView==='teams')loadTeams();if(activeView==='transfers')loadTransfer();if(activeView==='league')loadLeague();if(activeView==='rankings')loadRankings();if(activeView==='worldcup')loadWorldCup();
   };
   sel.onchange=()=>apply().catch(err=>console.error('Dataset switch failed',err));
   await apply();
