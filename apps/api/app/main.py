@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from .core import player_rows, similar, add_percentiles, event_files, load_json, DATA_ROOT, data_dir, set_active_data, reset_active_data, player_event_map, scout_rank, team_profiles
-from .football_data import router as football_data_router
+from .football_data import router as football_data_router, public_catalogue_rows
 
 FIL_VERSION='1.7.0-public-data'
 app=FastAPI(title='Football Intelligence Lab API',version=FIL_VERSION)
@@ -90,14 +90,20 @@ def _dataset_catalogue():
     return out
 
 
+def _combined_catalogue():
+    local=_dataset_catalogue()
+    public=public_catalogue_rows() if os.getenv('FOOTBALL_DATA_API_KEY','').strip() else []
+    seen={r.get('dataset_id') for r in local}
+    return local+[r for r in public if r.get('dataset_id') not in seen]
+
 @app.get('/datasets')
 async def datasets():
-    return _dataset_catalogue()
+    return _combined_catalogue()
 
 @app.get('/dataset-catalogue')
 async def dataset_catalogue():
-    # Dedicated bootstrap alias kept deliberately independent of analytics routes.
-    return _dataset_catalogue()
+    # Public deployments can bootstrap from provider-backed virtual datasets.
+    return _combined_catalogue()
 
 @app.get('/league-overview')
 def league_overview():
