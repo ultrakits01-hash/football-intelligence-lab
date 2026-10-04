@@ -1239,10 +1239,19 @@ def live_transfers(refresh:int=0):
         for part in feed_env.split(';'):
             if part.strip(): feeds.append((part.strip(),'Configured RSS'))
     else:
-        feeds=[('https://www.mykhel.com/rss/feeds/transfer-news-fb.xml','MyKhel Transfer News RSS')]
+        # Transfermarkt-derived reference data remains for historical market values,
+        # but Transfermarkt is NOT scraped for live news. Use permitted/public feeds.
+        feeds=[
+            ('https://feeds.bbci.co.uk/sport/football/rss.xml','BBC Sport'),
+            ('https://www.mykhel.com/rss/feeds/transfer-news-fb.xml','MyKhel Transfer News RSS')
+        ]
+    transfer_words=('transfer','sign','signing','deal','move','loan','bid','target','rumour','linked','join','leave','departure')
     for rss_url,name in feeds:
         try:
-            got=_rss_transfer_rows(rss_url,name); rows.extend(got)
+            got=_rss_transfer_rows(rss_url,name)
+            if name=='BBC Sport':
+                got=[x for x in got if any(w in str(x.get('title') or '').lower() for w in transfer_words)]
+            rows.extend(got)
             if got:sources.append(name)
         except Exception as exc: failures.append(f'{name}:{type(exc).__name__}')
     items=_normalise_transfer_items(rows)
