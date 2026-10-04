@@ -3,7 +3,7 @@ services:
     name: football-intelligence-lab
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt && python scripts/ingest_mahadi.py || echo '2025/26 research baseline unavailable; continuing with public provider data'
+    buildCommand: "pip install -r requirements.txt && echo '[FIL] restoring 2025/26 baseline...' && python -u scripts/ingest_mahadi.py && echo '[FIL] 2025/26 baseline ready'"
     startCommand: uvicorn apps.api.app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     autoDeployTrigger: commit
