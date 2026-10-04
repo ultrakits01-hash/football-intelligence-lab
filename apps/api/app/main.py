@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from .core import player_rows, similar, add_percentiles, event_files, load_json, DATA_ROOT, data_dir, set_active_data, reset_active_data, player_event_map, scout_rank, team_profiles
-from .football_data import router as football_data_router, public_catalogue_rows, dataset_code, league_overview_for, matches_for
+from .football_data import router as football_data_router, public_catalogue_rows, dataset_code, league_overview_for, matches_for, match_centre_for
 
 FIL_VERSION='1.7.0-public-data'
 app=FastAPI(title='Football Intelligence Lab API',version=FIL_VERSION)
@@ -531,7 +531,9 @@ def matches(dataset_id:str=''):
     return [{'match_id':m.get('match_id'),'date':m.get('match_date'),'home':m.get('home_team',{}).get('home_team_name'),'away':m.get('away_team',{}).get('away_team_name'),'home_score':m.get('home_score'),'away_score':m.get('away_score')} for m in load_json(p)]
 
 @app.get('/matches/{match_id}/analysis')
-def match_analysis(match_id:int):
+def match_analysis(match_id:int, dataset_id:str=''):
+    code=dataset_code(dataset_id)
+    if code: return match_centre_for(code,match_id)
     # Normalised providers such as Understat have shot-level match data but not
     # StatsBomb-style full event streams. Return only what the provider truly supplies.
     maps_path=data_dir()/'player_maps.json'; norm_matches=data_dir()/'matches_normalized.json'
