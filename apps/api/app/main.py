@@ -4,11 +4,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from .core import player_rows, similar, add_percentiles, event_files, load_json, DATA_ROOT, data_dir, set_active_data, reset_active_data, player_event_map, scout_rank, team_profiles
+from .core import player_rows, similar, add_percentiles, event_files, load_json, DATA_ROOT, data_dir, set_active_data, reset_active_data, player_event_map, scout_rank, team_profiles\nfrom .football_data import router as football_data_router
 
-FIL_VERSION='1.6.1-final-rc2'
+FIL_VERSION='1.7.0-public-data'
 app=FastAPI(title='Football Intelligence Lab API',version=FIL_VERSION)
-app.add_middleware(CORSMiddleware,allow_origins=['*'],allow_methods=['*'],allow_headers=['*'])
+app.add_middleware(CORSMiddleware,allow_origins=['*'],allow_methods=['*'],allow_headers=['*'])\napp.include_router(football_data_router)
 
 # Dataset selection is request-scoped, so every existing endpoint automatically reads
 # from the selected competition/season without duplicating analytics logic.
