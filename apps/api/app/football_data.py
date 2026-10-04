@@ -124,3 +124,30 @@ def public_catalogue_rows():
             }
         })
     return rows
+
+
+def dataset_code(dataset_id):
+    s=str(dataset_id or "")
+    if s.startswith("fd-") and s.endswith("-2026"):
+        return s[3:-5].upper()
+    return None
+
+def league_overview_for(code):
+    matches,_=_get(f"/competitions/{code}/matches",{"season":2026})
+    teams,_=_get(f"/competitions/{code}/teams",{"season":2026},ttl=21600)
+    scorers,_=_get(f"/competitions/{code}/scorers",{"season":2026,"limit":10})
+    ms=[_match(x) for x in matches.get("matches",[])]
+    played=[x for x in ms if x.get("status")=="FINISHED"]
+    recent=sorted(played,key=lambda x:str(x.get("utc_date") or ""),reverse=True)[:8]
+    leaders=[]
+    for x in scorers.get("scorers",[]):
+        p=x.get("player") or {}
+        leaders.append({"id":p.get("id"),"name":p.get("name"),"team":(x.get("team") or {}).get("name"),"position":p.get("position"),"goals":x.get("goals"),"assists":x.get("assists")})
+    return {"players":0,"team_count":len(teams.get("teams",[])),"matches":len(ms),"played":len(played),
+            "leaders":{"goals":leaders,"assists":sorted(leaders,key=lambda x:x.get("assists") or 0,reverse=True),"xg":[],"xa":[]},
+            "teams":[{"team":x.get("name"),"name":x.get("name"),"id":x.get("id"),"crest":x.get("crest")} for x in teams.get("teams",[])],
+            "recent":recent,"provider":"football-data.org","public_dataset":True}
+
+def matches_for(code):
+    data,_=_get(f"/competitions/{code}/matches",{"season":2026})
+    return [_match(x) for x in data.get("matches",[])]
