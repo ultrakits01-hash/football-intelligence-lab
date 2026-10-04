@@ -3,7 +3,7 @@ services:
     name: football-intelligence-lab
     runtime: python
     plan: free
-    buildCommand: "pip install -r requirements.txt && echo '[FIL] restoring 2025/26 baseline...' && python -u scripts/ingest_mahadi.py && echo '[FIL] restoring 2025/26 Understat match intelligence...' && for league in premier-league la-liga bundesliga serie-a ligue-1; do python -u scripts/ingest_understat.py $league 2025 --shots || echo \"[FIL] Understat $league unavailable; continuing\"; done && echo '[FIL] 2025/26 analytics layers ready'"
+    buildCommand: "pip install -r requirements.txt && echo '[FIL] restoring 2025/26 baseline...' && python -u scripts/ingest_mahadi.py && echo '[FIL] restoring cached 2025/26 Understat intelligence...' && python -u scripts/restore_understat_cache.py && echo '[FIL] 2025/26 analytics layers ready'"
     startCommand: uvicorn apps.api.app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     autoDeployTrigger: commit
