@@ -306,6 +306,36 @@ def team_profiles():
             r['top_players']=sorted([p for p in players if p.get('team')==r['team']],key=lambda p:p.get('minutes',0),reverse=True)[:8]
         return sorted(rows,key=lambda r:r['team'])
     """Event-derived team profiles per match for the currently ingested competition/season."""
+    # Player-season research baselines do not carry match event files. Build a
+    # transparent squad-output profile from the real player rows instead of
+    # returning an empty Team Lab.
+    if not event_files():
+        players=player_rows(); by=defaultdict(list)
+        for p in players:
+            if p.get('team'): by[p['team']].append(p)
+        metrics=['goals','xg','shots','passes_completed','carries','pressures','interceptions','duels','recoveries','tackles_won']
+        rows=[]
+        for team,ps in by.items():
+            mins=sum(float(p.get('minutes') or 0) for p in ps)
+            if not mins: continue
+            r={'team':team,'matches':None,'provider':'FIL 2025/26 player-season baseline','percentiles':{},'ranks':{}}
+            for k in metrics:
+                vals=[p.get(k) for p in ps if p.get(k) is not None]
+                total=sum(float(v) for v in vals) if vals else None
+                r[k+'_pm']=None
+                r[k+'_p90']=round(total*90/mins,3) if total is not None else None
+            r['goals_pm']=r.get('goals_p90'); r['xg_pm']=r.get('xg_p90'); r['shots_pm']=r.get('shots_p90'); r['passes_completed_pm']=r.get('passes_completed_p90')
+            r['top_players']=sorted(ps,key=lambda p:float(p.get('minutes') or 0),reverse=True)[:8]
+            rows.append(r)
+        rank_keys=['goals_pm','xg_pm','shots_pm','passes_completed_pm','carries_p90','pressures_p90','interceptions_p90','duels_p90','recoveries_p90','tackles_won_p90']
+        for r in rows:
+            r['league_team_count']=len(rows)
+            for k in rank_keys:
+                vals=_real_numbers(rows,k); rv=r.get(k)
+                if rv is None or not vals: r['percentiles'][k]=None; r['ranks'][k]=None
+                else:
+                    v=_num(rv); r['percentiles'][k]=round(100*sum(a<=v for a in vals)/len(vals)); r['ranks'][k]=1+sum(1 for a in vals if a>v)
+        return sorted(rows,key=lambda r:r['team'])
     agg=defaultdict(lambda: defaultdict(float)); matches=Counter()
     for path in event_files():
         events=load_json(path); seen=set()
