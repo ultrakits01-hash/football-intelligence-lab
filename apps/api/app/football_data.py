@@ -113,8 +113,8 @@ def league_overview_for(code):
             if table: break
     return {"players":0,"team_count":len(teams.get("teams",[])),"matches":len(ms),"played":len(played),"leaders":{"goals":leaders,"assists":sorted(leaders,key=lambda x:x.get("assists") or 0,reverse=True),"xg":[],"xa":[]},"teams":[{"team":x.get("name"),"name":x.get("name"),"id":x.get("id"),"crest":x.get("crest")} for x in teams.get("teams",[])],"standings":table,"recent":recent,"provider":"football-data.org","public_dataset":True}
 
-def matches_for(code):
-    data,_=_get(f"/competitions/{code}/matches",{"season":2026}); return [_match(x) for x in data.get("matches",[])]
+def matches_for(code, season=2026):
+    data,_=_get(f"/competitions/{code}/matches",{"season":int(season)}); return [_match(x) for x in data.get("matches",[])]
 
 def match_centre_for(code, match_id):
     """Basic public Match Centre. Only fields actually returned by football-data.org are exposed."""
