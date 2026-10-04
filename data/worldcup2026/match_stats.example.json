@@ -1,0 +1,16 @@
+{
+  "source": "Licensed/permitted match-stat provider",
+  "matches": [
+    {
+      "date": "2026-07-19",
+      "team1": "Spain",
+      "team2": "Argentina",
+      "stats": {
+        "possession": [65, 35],
+        "xg": [2.29, 0.22],
+        "shots": [20, 2],
+        "touches_box": [32, 8]
+      }
+    }
+  ]
+}

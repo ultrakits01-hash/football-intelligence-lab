@@ -1,0 +1,17 @@
+{
+  "source": "Example verified transfer feed",
+  "items": [
+    {
+      "player": "Example Player",
+      "from_club": "Club A",
+      "to_club": "Club B",
+      "type": "Permanent",
+      "fee": "\u20ac25m",
+      "status": "confirmed",
+      "published_at": "2026-10-03T14:30:00+01:00",
+      "summary": "Example schema only \u2014 not a real transfer.",
+      "source": "Example source",
+      "source_url": "https://example.com"
+    }
+  ]
+}

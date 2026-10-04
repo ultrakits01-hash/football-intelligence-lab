@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+.pytest_cache/
+data/raw/statsbomb/events/
+data/raw/statsbomb/lineups/
+data/raw/statsbomb/three-sixty/
+
+.env
+
+# Public deployment safety
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
