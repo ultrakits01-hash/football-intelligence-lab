@@ -44,7 +44,7 @@ def _team(t):
 
 def _match(m):
     score=m.get("score") or {}; ft=score.get("fullTime") or {}
-    return {"id":m.get("id"),"utc_date":m.get("utcDate"),"status":m.get("status"),"matchday":m.get("matchday"),"stage":m.get("stage"),"group":m.get("group"),
+    return {"id":m.get("id"),"match_id":m.get("id"),"utc_date":m.get("utcDate"),"date":m.get("utcDate"),"home_name":(m.get("homeTeam") or {}).get("name"),"away_name":(m.get("awayTeam") or {}).get("name"),"status":m.get("status"),"matchday":m.get("matchday"),"stage":m.get("stage"),"group":m.get("group"),
             "home":_team(m.get("homeTeam")),"away":_team(m.get("awayTeam")),"home_score":ft.get("home"),"away_score":ft.get("away"),
             "winner":score.get("winner"),"last_updated":m.get("lastUpdated")}
 
