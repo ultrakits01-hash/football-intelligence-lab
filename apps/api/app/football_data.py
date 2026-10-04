@@ -101,10 +101,17 @@ def dataset_code(dataset_id):
 
 def league_overview_for(code):
     matches,_=_get(f"/competitions/{code}/matches",{"season":2026}); teams,_=_get(f"/competitions/{code}/teams",{"season":2026},ttl=21600); scorers,_=_get(f"/competitions/{code}/scorers",{"season":2026,"limit":10})
+    try: standings,_=_get(f"/competitions/{code}/standings",{"season":2026})
+    except HTTPException: standings={}
     ms=[_match(x) for x in matches.get("matches",[])]; played=[x for x in ms if x.get("status")=="FINISHED"]; recent=sorted(played,key=lambda x:str(x.get("utc_date") or ""),reverse=True)[:8]; leaders=[]
     for x in scorers.get("scorers",[]):
         p=x.get("player") or {}; leaders.append({"id":p.get("id"),"name":p.get("name"),"team":(x.get("team") or {}).get("name"),"position":p.get("position"),"goals":x.get("goals"),"assists":x.get("assists")})
-    return {"players":0,"team_count":len(teams.get("teams",[])),"matches":len(ms),"played":len(played),"leaders":{"goals":leaders,"assists":sorted(leaders,key=lambda x:x.get("assists") or 0,reverse=True),"xg":[],"xa":[]},"teams":[{"team":x.get("name"),"name":x.get("name"),"id":x.get("id"),"crest":x.get("crest")} for x in teams.get("teams",[])],"recent":recent,"provider":"football-data.org","public_dataset":True}
+    table=[]
+    for block in standings.get("standings",[]):
+        if block.get("type")=="TOTAL":
+            for r in block.get("table",[]): table.append({"position":r.get("position"),"team":_team(r.get("team")),"played":r.get("playedGames"),"won":r.get("won"),"draw":r.get("draw"),"lost":r.get("lost"),"gf":r.get("goalsFor"),"ga":r.get("goalsAgainst"),"gd":r.get("goalDifference"),"points":r.get("points")})
+            if table: break
+    return {"players":0,"team_count":len(teams.get("teams",[])),"matches":len(ms),"played":len(played),"leaders":{"goals":leaders,"assists":sorted(leaders,key=lambda x:x.get("assists") or 0,reverse=True),"xg":[],"xa":[]},"teams":[{"team":x.get("name"),"name":x.get("name"),"id":x.get("id"),"crest":x.get("crest")} for x in teams.get("teams",[])],"standings":table,"recent":recent,"provider":"football-data.org","public_dataset":True}
 
 def matches_for(code):
     data,_=_get(f"/competitions/{code}/matches",{"season":2026}); return [_match(x) for x in data.get("matches",[])]
