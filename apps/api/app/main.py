@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from .core import player_rows, similar, add_percentiles, event_files, load_json, DATA_ROOT, data_dir, set_active_data, reset_active_data, player_event_map, scout_rank, team_profiles
-from .football_data import router as football_data_router, public_catalogue_rows
+from .football_data import router as football_data_router, public_catalogue_rows, dataset_code, league_overview_for, matches_for
 
 FIL_VERSION='1.7.0-public-data'
 app=FastAPI(title='Football Intelligence Lab API',version=FIL_VERSION)
@@ -106,7 +106,9 @@ async def dataset_catalogue():
     return _combined_catalogue()
 
 @app.get('/league-overview')
-def league_overview():
+def league_overview(dataset_id:str=''):
+    code=dataset_code(dataset_id)
+    if code: return league_overview_for(code)
     players=player_rows(); teams=team_profiles()
     np=data_dir()/'matches_normalized.json'; mp=data_dir()/'matches.json'
     matches=load_json(np) if np.exists() else (load_json(mp) if mp.exists() else [])
@@ -519,7 +521,9 @@ def team(team_name:str):
     return x
 
 @app.get('/matches')
-def matches():
+def matches(dataset_id:str=''):
+    code=dataset_code(dataset_id)
+    if code: return matches_for(code)
     np=data_dir()/'matches_normalized.json'
     if np.exists(): return load_json(np)
     p=data_dir()/'matches.json'
