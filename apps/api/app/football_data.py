@@ -48,6 +48,29 @@ def _match(m):
 def provider_health(): return {"configured":bool(_key()),"provider":"football-data.org","cache_seconds":TTL,"competitions":COMPETITIONS}
 
 
+def _public_competition_bundle(code,season=None):
+    params={"season":int(season)} if season is not None else None
+    comp,_=_get(f"/competitions/{code}",params,ttl=21600)
+    matches,_=_get(f"/competitions/{code}/matches",params)
+    standings,_=_get(f"/competitions/{code}/standings",params)
+    scorers,_=_get(f"/competitions/{code}/scorers",params)
+    teams,_=_get(f"/competitions/{code}/teams",params)
+    return {
+        "provider":"football-data.org","competition":comp,
+        "matches":[_match(x) for x in matches.get("matches",[])],
+        "standings":standings.get("standings",[]),
+        "scorers":scorers.get("scorers",[]),
+        "teams":teams.get("teams",[]),
+        "capabilities":{"matches":True,"standings":True,"teams":True,"scorers":True,"xg":False,"shot_xy":False,"event_xy":False}
+    }
+
+@router.get("/international/{code}")
+def international_competition(code:str,season:int|None=None):
+    code=code.upper()
+    allowed={str(x.get("code") or "").upper() for x in (_get("/competitions",ttl=21600)[0].get("competitions",[]))}
+    if code not in allowed: raise HTTPException(404,"International competition is not available to this provider account")
+    return _public_competition_bundle(code,season)
+
 @router.get("/international/catalogue")
 def international_catalogue():
     """Return only international competitions the configured account can actually see."""
