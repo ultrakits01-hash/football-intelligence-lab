@@ -526,10 +526,21 @@ def team(team_name:str):
     if not x: raise HTTPException(404,'Team not found')
     return x
 
+def _historical_public_match_code(dataset_id:str):
+    """Map FIL's 2025/26 player-season baselines to the clean public fixture layer."""
+    s=str(dataset_id or '').lower()
+    pairs=(('premier-league','PL'),('la-liga','PD'),('bundesliga','BL1'),('serie-a','SA'),('ligue-1','FL1'))
+    if s.startswith('baseline_') and s.endswith('_2025'):
+        for slug,code in pairs:
+            if slug in s:return code
+    return None
+
 @app.get('/matches')
 def matches(dataset_id:str=''):
     code=dataset_code(dataset_id)
-    if code: return matches_for(code)
+    if code: return matches_for(code,2026)
+    historical_code=_historical_public_match_code(dataset_id)
+    if historical_code: return matches_for(historical_code,2025)
     np=data_dir()/'matches_normalized.json'
     if np.exists(): return load_json(np)
     p=data_dir()/'matches.json'
@@ -540,6 +551,13 @@ def matches(dataset_id:str=''):
 def match_analysis(match_id:int, dataset_id:str=''):
     code=dataset_code(dataset_id)
     if code: return match_centre_for(code,match_id)
+    historical_code=_historical_public_match_code(dataset_id)
+    if historical_code:
+        # 2025/26 historical Player Lab + clean provider-backed match records.
+        # Do not claim xG/events/lineups that this provider does not supply.
+        out=match_centre_for(historical_code,match_id)
+        out['historical_layer']='FIL 2025/26 analytics + football-data.org match record'
+        return out
     # Normalised providers such as Understat have shot-level match data but not
     # StatsBomb-style full event streams. Return only what the provider truly supplies.
     maps_path=data_dir()/'player_maps.json'; norm_matches=data_dir()/'matches_normalized.json'
