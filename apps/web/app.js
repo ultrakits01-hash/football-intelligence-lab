@@ -370,7 +370,7 @@ $('#clearShortlist').onclick=()=>{if(!shortlist.size)return;shortlist.clear();sa
 
 
 let transferRequestSeq=0,transferClubsLoaded=false;
-async function ensureTransferClubs(){if(transferClubsLoaded)return;const rows=await api('/players?min_minutes=1');const clubs=[...new Set(rows.map(p=>p.team).filter(Boolean))].sort();$('#transferClub').innerHTML=clubs.map(c=>`<option value="${c}">${c}</option>`).join('');transferClubsLoaded=true}
+async function ensureTransferClubs(){if(transferClubsLoaded)return;const sel=$('#transferClub');if(sel)sel.innerHTML='<option value="">Loading clubs…</option>';let clubs=[];try{const teams=await api('/teams');clubs=[...new Set((teams||[]).map(x=>x.team||x.name).filter(Boolean))].sort()}catch(e){}if(!clubs.length){try{const rows=await api('/players?min_minutes=1');clubs=[...new Set((rows||[]).map(p=>p.team).filter(Boolean))].sort()}catch(e){}}if(sel)sel.innerHTML=clubs.length?clubs.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join(''):'<option value="">No club data in this dataset</option>';transferClubsLoaded=clubs.length>0}
 const transferRoles={
  GK:[['shot_stopper','Shot stopper'],['sweeper_keeper','Sweeper keeper'],['distributor','Distributor'],['balanced_gk','Balanced goalkeeper']],
  DEF:[['stopper','Stopper CB'],['ball_playing_cb','Ball-playing CB'],['cover_cb','Cover CB'],['attacking_fullback','Attacking full-back'],['defensive_fullback','Defensive full-back']],
