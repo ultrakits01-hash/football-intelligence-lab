@@ -78,8 +78,12 @@ def international_catalogue():
     for x in data.get("competitions",[]):
         name=str(x.get("name") or ""); area=(x.get("area") or {}).get("name")
         hay=(name+" "+str(area or "")).lower()
-        if not any(k in hay for k in ("world cup","european championship","nations league","africa cup","copa am","qualification")): continue
-        rows.append({"id":x.get("id"),"code":x.get("code"),"name":name,"area":area,"emblem":x.get("emblem"),"plan":x.get("plan"),"type":x.get("type"),"current_season":x.get("currentSeason")})
+        # Free FIL international hub currently supports only tournaments with
+        # a complete, known route: World Cup and the most recent men's Euros.
+        # Do not advertise catalogue-only competitions as working analytics.
+        code=str(x.get("code") or "").upper()
+        if code not in {"WC","EC"}: continue
+        rows.append({"id":x.get("id"),"code":code,"name":name,"area":area,"emblem":x.get("emblem"),"plan":x.get("plan"),"type":x.get("type"),"current_season":x.get("currentSeason")})
     return {"provider":"football-data.org","cached":cached,"competitions":rows}
 
 @router.get("/competitions")
