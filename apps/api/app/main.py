@@ -512,7 +512,13 @@ def player_spatial_evidence(name:str, team:str='', season:str='', competition:st
     return {'found':True,'dataset_id':ds.get('dataset_id'),'provider':ds.get('provider'),'competition':ds.get('competition'),'season':ds.get('season'),'player_id':r.get('id'),'shots':mp.get('shots') or [],'events':mp.get('events') or mp.get('located_events') or [],'located_events':mp.get('located_events') or mp.get('events') or []}
 
 @app.get('/teams')
-def teams(): return team_profiles()
+def teams(dataset_id:str=''):
+    code=dataset_code(dataset_id)
+    if code:
+        # Public current-season provider has club identities but not FIL team analytics.
+        overview=league_overview_for(code)
+        return [{'team':t.get('name') or t.get('team'),'crest':t.get('crest'),'provider':'football-data.org','matches':None,'percentiles':{},'ranks':{},'top_players':[]} for t in overview.get('teams',[])]
+    return team_profiles()
 
 @app.get('/teams/{team_name}')
 def team(team_name:str):
