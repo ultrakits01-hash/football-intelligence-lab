@@ -1262,7 +1262,10 @@ _WONDER_CACHE={'stamp':None,'global_rows':None,'fil':None}
 
 def _wonder_base():
     ref=Path(__file__).resolve().parents[3]/'data'/'reference'/'global_wonderkids.json'
-    stamp=(ref.stat().st_mtime_ns if ref.exists() else 0, tuple((d.get('dataset_id'),d.get('season')) for d in _public_datasets()))
+    # Only installed local datasets can contribute player rows. Virtual live
+    # provider datasets have no local Player Lab pool and must not be scanned.
+    local_ds=[d for d in _public_datasets() if not str(d.get('dataset_id') or '').startswith('fd-')]
+    stamp=(ref.stat().st_mtime_ns if ref.exists() else 0, tuple((d.get('dataset_id'),d.get('season')) for d in local_ds))
     if _WONDER_CACHE.get('stamp')==stamp:
         return _WONDER_CACHE['global_rows'],_WONDER_CACHE['fil']
     global_rows=[]
@@ -1270,7 +1273,7 @@ def _wonder_base():
         try: global_rows=(load_json(ref) or {}).get('players',[])
         except Exception: global_rows=[]
     fil=[]
-    for ds in _public_datasets():
+    for ds in local_ds:
         if not (str(ds.get('season') or '').startswith('2025') or str(ds.get('season') or '').startswith('2026')):continue
         did=ds['dataset_id']
         def grab():
