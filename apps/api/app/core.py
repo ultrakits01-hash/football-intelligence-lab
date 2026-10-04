@@ -298,8 +298,10 @@ def team_profiles():
             for k in metrics:
                 vals=_real_numbers(rows,k); v=_num(r.get(k)); n=max(1,len(vals))
                 r['percentiles'][k]=round(100*sum(a>=v for a in vals)/n) if k in lower_better else round(100*sum(a<=v for a in vals)/n)
-                ordered=sorted(vals, reverse=(k not in lower_better))
-                r['ranks'][k]=1+sum(1 for a in ordered if (a<v if k in lower_better else a>v))
+                # Competition rank: 1 is best. For defensive/pressing metrics
+                # where lower is better, count clubs with a strictly LOWER value.
+                # For attacking/output metrics, count clubs with a strictly HIGHER value.
+                r['ranks'][k]=1+sum(1 for a in vals if (a < v if k in lower_better else a > v))
             r['league_team_count']=len(rows)
         players=player_rows()
         for r in rows:
