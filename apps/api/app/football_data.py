@@ -98,3 +98,29 @@ def scorers(code:str, season:int|None=None, limit:int=20):
         p=x.get("player") or {}
         rows.append({"player_id":p.get("id"),"name":p.get("name"),"nationality":p.get("nationality"),"position":p.get("position"),"team":_team(x.get("team")),"goals":x.get("goals"),"assists":x.get("assists"),"penalties":x.get("penalties")})
     return {"provider":"football-data.org","competition":code,"cached":cached,"scorers":rows}
+
+
+def public_catalogue_rows():
+    """Virtual FIL datasets backed by football-data.org; no local provider files required."""
+    season_label="2026/27"
+    rows=[]
+    for code,name in COMPETITIONS.items():
+        if code=="WC":
+            continue
+        rows.append({
+            "dataset_id":f"fd-{code.lower()}-2026",
+            "competition_id":code,
+            "season_id":"2026",
+            "competition":name,
+            "season":season_label,
+            "label":f"{name} · {season_label}",
+            "provider":"football-data.org",
+            "installed":True,
+            "virtual":True,
+            "matches":0,
+            "capabilities":{
+                "fixtures":True,"results":True,"standings":True,"teams":True,"scorers":True,
+                "player_advanced":False,"event_xy":False
+            }
+        })
+    return rows
